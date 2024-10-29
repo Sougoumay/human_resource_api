@@ -17,4 +17,11 @@ public class UserExceptionHandler extends ResponseEntityExceptionHandler {
         headers.setContentType(MediaType.TEXT_PLAIN);
         return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(ExperienceNotFoundException.class)
+    public ResponseEntity<String> experienceNotFoundExceptionHandler(ExperienceNotFoundException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_FOUND);
+    }
 }

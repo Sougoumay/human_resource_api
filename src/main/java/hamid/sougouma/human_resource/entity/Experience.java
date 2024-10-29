@@ -3,10 +3,13 @@ package hamid.sougouma.human_resource.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
 
 import java.time.LocalDate;
 
 @Entity
+@Data
 public class Experience {
 
     @Id
@@ -22,4 +25,7 @@ public class Experience {
     private LocalDate startDate;
 
     private LocalDate endDate;
+
+    @ManyToOne
+    private Employee employee;
 }

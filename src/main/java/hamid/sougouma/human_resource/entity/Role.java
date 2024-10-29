@@ -6,8 +6,10 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 @Entity
+@Data
 public class Role {
 
     @Id @GeneratedValue
@@ -17,14 +19,6 @@ public class Role {
     @NotEmpty
     @NotNull
     private String name;
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
 
     @Override
     public String toString() {
