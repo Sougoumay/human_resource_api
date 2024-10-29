@@ -1,5 +1,6 @@
 package hamid.sougouma.human_resource.controller;
 
+import hamid.sougouma.human_resource.dto.UserDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.UserService;
@@ -39,6 +40,7 @@ public class UserController {
     @PostMapping("")
     public ResponseEntity<Employee> addUser(@RequestBody Employee employee, UriComponentsBuilder uriComponentsBuilder) {
 
+        System.out.println(employee.toString());
         Employee createdEmployee = userService.addUser(employee);
 
         if (createdEmployee != null) {
