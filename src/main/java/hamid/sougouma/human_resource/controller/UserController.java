@@ -1,6 +1,6 @@
 package hamid.sougouma.human_resource.controller;
 
-import hamid.sougouma.human_resource.entity.User;
+import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.UserService;
 import org.springframework.http.HttpHeaders;
@@ -24,30 +24,30 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Collection<User>> users() {
+    public ResponseEntity<Collection<Employee>> users() {
 
-        List<User> users = userService.findAll();
+        List<Employee> employees = userService.findAll();
 
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(employees);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findUserByid(@PathVariable long id) throws UserNotFoundException {
+    public ResponseEntity<Employee> findUserByid(@PathVariable long id) throws UserNotFoundException {
         return ResponseEntity.ok(userService.findById(id));
     }
 
-    @PostMapping()
-    public ResponseEntity<User> addUser(@RequestBody User user, UriComponentsBuilder uriComponentsBuilder) {
+    @PostMapping("")
+    public ResponseEntity<Employee> addUser(@RequestBody Employee employee, UriComponentsBuilder uriComponentsBuilder) {
 
-        User createdUser = userService.addUser(user);
+        Employee createdEmployee = userService.addUser(employee);
 
-        if (createdUser != null) {
+        if (createdEmployee != null) {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(
                     uriComponentsBuilder
                             .path("/users/{id}")
-                            .buildAndExpand(createdUser.getId())
+                            .buildAndExpand(createdEmployee.getId())
                             .toUri()
             );
 
@@ -60,12 +60,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable(value = "id") long userId, @RequestBody User user) throws UserNotFoundException {
+    public ResponseEntity<Employee> updateUser(@PathVariable(value = "id") long userId, @RequestBody Employee employee) throws UserNotFoundException {
 
-        if (user != null && user.getId() == userId) {
-            User updatedUser = userService.updateUser(user);
+        if (employee != null && employee.getId() == userId) {
+            Employee updatedEmployee = userService.updateUser(employee);
 
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+            return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);

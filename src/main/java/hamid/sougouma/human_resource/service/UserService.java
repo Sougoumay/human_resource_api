@@ -1,23 +1,23 @@
 package hamid.sougouma.human_resource.service;
 
-import hamid.sougouma.human_resource.entity.User;
+import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 
 import java.util.List;
 
 public interface UserService {
 
-    List<User> findAll();
+    List<Employee> findAll();
 
-    List<User> searchByFirstName(String firstName);
+    List<Employee> searchByFirstName(String firstName);
 
-    User findByEmail(String email) throws UserNotFoundException;
+    Employee findByEmail(String email) throws UserNotFoundException;
 
-    User findById(long id) throws UserNotFoundException;
+    Employee findById(long id) throws UserNotFoundException;
 
-    User addUser(User user);
+    Employee addUser(Employee employee);
 
-    User updateUser(User user) throws UserNotFoundException;
+    Employee updateUser(Employee employee) throws UserNotFoundException;
 
     void deleteUser(long id) throws UserNotFoundException;
 
