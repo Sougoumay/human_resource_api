@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: human_resource
+
+server:
+  port: 9090
