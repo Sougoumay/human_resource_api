@@ -2,12 +2,12 @@ spring:
   application:
     name: human_resource
   datasource:
-    url: jdbc:h2:mem:humanResource
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/human_resource
+    username: root
+    password: admin
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
   security:
     oauth2:
       resourceserver:

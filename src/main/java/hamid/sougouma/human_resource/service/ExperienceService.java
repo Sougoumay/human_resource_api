@@ -1,5 +1,6 @@
 package hamid.sougouma.human_resource.service;
 
+import hamid.sougouma.human_resource.dto.ExperienceDTO;
 import hamid.sougouma.human_resource.entity.Experience;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
 
@@ -16,5 +17,7 @@ public interface ExperienceService {
     Experience updateExperience(Experience experience);
 
     void deleteExperience(Experience experience) throws ExperienceNotFoundException;
+
+    Experience getExperienceFromDTO(ExperienceDTO dto);
 
 }

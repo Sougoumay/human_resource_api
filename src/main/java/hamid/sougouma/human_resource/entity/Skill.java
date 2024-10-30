@@ -1,17 +1,23 @@
 package hamid.sougouma.human_resource.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import hamid.sougouma.human_resource.enums.SkillLevelEnum;
+import jakarta.persistence.*;
+import lombok.Data;
 
+
+@Data
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"level","name"}, name = "unique_level_name_couple")})
 public class Skill {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(nullable = false)
     private String name;
 
-    private String level;
+    @Column(name = "level", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SkillLevelEnum level;
 }

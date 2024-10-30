@@ -1,9 +1,11 @@
 package hamid.sougouma.human_resource.controller;
 
+import hamid.sougouma.human_resource.dto.ExperienceDTO;
 import hamid.sougouma.human_resource.dto.UserDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Experience;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
+import hamid.sougouma.human_resource.exception.RoleNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.ExperienceService;
 import hamid.sougouma.human_resource.service.UserService;
@@ -43,7 +45,7 @@ public class UserController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Employee> addUser(@RequestBody Employee employee, UriComponentsBuilder uriComponentsBuilder) {
+    public ResponseEntity<Employee> addUser(@RequestBody Employee employee, UriComponentsBuilder uriComponentsBuilder) throws RoleNotFoundException {
 
         System.out.println(employee.toString());
         Employee createdEmployee = userService.addUser(employee);
@@ -105,6 +107,8 @@ public class UserController {
 
     @GetMapping("/{userId}/experiences/{experienceId}")
     public ResponseEntity<Experience> getUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws UserNotFoundException, ExperienceNotFoundException {
+        // TODO : don't retrieve the users et theirs roles with the experiences
+
         Employee employee = userService.findById(userId);
         Experience experience = experienceService.getExperience(experienceId);
         return new ResponseEntity<>(experience, HttpStatus.OK);
@@ -112,11 +116,13 @@ public class UserController {
 
 
     @PostMapping("/{userId}/experiences")
-    public ResponseEntity<Experience> addUserExperience(@PathVariable long userId, @RequestBody Experience experience, UriComponentsBuilder uriComponentsBuilder)
+    public ResponseEntity<Experience> addUserExperience(@PathVariable long userId, @RequestBody ExperienceDTO experienceDTO, UriComponentsBuilder uriComponentsBuilder)
             throws UserNotFoundException
     {
         Employee employee = userService.findById(userId);
-        if (experience != null && experience.getEmployee().getId() == employee.getId()) {
+        if (experienceDTO != null && employee != null) {
+            Experience experience = experienceService.getExperienceFromDTO(experienceDTO);
+            experience.setEmployee(employee);
             Experience createdExperience = experienceService.addExperience(experience);
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(

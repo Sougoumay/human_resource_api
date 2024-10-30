@@ -1,6 +1,7 @@
 package hamid.sougouma.human_resource.service;
 
 import hamid.sougouma.human_resource.dao.ExperienceRepository;
+import hamid.sougouma.human_resource.dto.ExperienceDTO;
 import hamid.sougouma.human_resource.entity.Experience;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -39,5 +40,17 @@ public class ExperienceServiceImpl implements ExperienceService {
     @Override
     public void deleteExperience(Experience experience) {
         experienceRepository.delete(experience);
+    }
+
+    @Override
+    public Experience getExperienceFromDTO(ExperienceDTO dto) {
+        Experience experience = new Experience();
+        experience.setId(dto.getId());
+        experience.setCompany(dto.getCompany());
+        experience.setDescription(dto.getDescription());
+        experience.setTitle(dto.getTitle());
+        experience.setEndDate(dto.getEndDate());
+        experience.setStartDate(dto.getStartDate());
+        return experience;
     }
 }

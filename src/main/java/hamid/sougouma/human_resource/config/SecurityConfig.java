@@ -29,10 +29,6 @@ public class SecurityConfig {
     }
 
 
-//    @Value("spring.security.oauth2.resourceserver.jwt.issuer-uri")
-//    private String issuer;
-
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -51,9 +47,5 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-//    @Bean
-//    public JwtDecoder jwtDecoder() {
-//        return JwtDecoders.fromIssuerLocation("http://localhost:8080/realms/human_resource_keycloack");
-//    }
+    
 }

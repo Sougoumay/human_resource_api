@@ -1,20 +1,17 @@
-package hamid.sougouma.human_resource.entity;
+package hamid.sougouma.human_resource.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
-@Entity
 @Data
-public class Experience {
+public class ExperienceDTO {
 
-    @Id
-    @GeneratedValue
     private long id;
 
     @NotNull
@@ -33,11 +30,10 @@ public class Experience {
     private String description;
 
     @NotNull
+    @DateTimeFormat
     private LocalDate startDate;
 
     @NotNull
+    @DateTimeFormat
     private LocalDate endDate;
-
-    @ManyToOne
-    private Employee employee;
 }

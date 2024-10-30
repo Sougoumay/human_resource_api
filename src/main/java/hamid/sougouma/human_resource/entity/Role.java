@@ -1,8 +1,6 @@
 package hamid.sougouma.human_resource.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -12,12 +10,13 @@ import lombok.Data;
 @Data
 public class Role {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @NotBlank
     @NotEmpty
     @NotNull
+    @Column(unique = true)
     private String name;
 
     @Override
