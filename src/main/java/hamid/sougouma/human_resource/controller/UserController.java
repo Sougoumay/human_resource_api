@@ -24,11 +24,9 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final ExperienceService experienceService;
 
-    public UserController(UserService userService, ExperienceService experienceService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.experienceService = experienceService;
     }
 
     @GetMapping
@@ -94,81 +92,4 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
 
     }
-
-
-    @GetMapping("/{id}/experiences")
-    public ResponseEntity<Collection<Experience>> getUserExperiences(@PathVariable long id) throws UserNotFoundException {
-
-        Employee employee = userService.findById(id);
-        List<Experience> experiences = experienceService.getUserExperiences(employee.getId());
-
-        return new ResponseEntity<>(experiences, HttpStatus.OK);
-    }
-
-    @GetMapping("/{userId}/experiences/{experienceId}")
-    public ResponseEntity<Experience> getUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws UserNotFoundException, ExperienceNotFoundException {
-        // TODO : don't retrieve the users et theirs roles with the experiences
-
-        Employee employee = userService.findById(userId);
-        Experience experience = experienceService.getExperience(experienceId);
-        return new ResponseEntity<>(experience, HttpStatus.OK);
-    }
-
-
-    @PostMapping("/{userId}/experiences")
-    public ResponseEntity<Experience> addUserExperience(@PathVariable long userId, @RequestBody ExperienceDTO experienceDTO, UriComponentsBuilder uriComponentsBuilder)
-            throws UserNotFoundException
-    {
-        Employee employee = userService.findById(userId);
-        if (experienceDTO != null && employee != null) {
-            Experience experience = experienceService.getExperienceFromDTO(experienceDTO);
-            experience.setEmployee(employee);
-            Experience createdExperience = experienceService.addExperience(experience);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(
-                    uriComponentsBuilder
-                            .path("/users/{userId}/experiences/{experienceId}")
-                            .buildAndExpand(employee.getId(), createdExperience.getId())
-                            .toUri()
-                    );
-
-            return new ResponseEntity<>(createdExperience, headers, HttpStatus.CREATED);
-        }
-
-        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-    }
-
-    @PutMapping("/{userId}/experiences/{experienceId}")
-    public ResponseEntity<Experience> updateUserExperience(@PathVariable long userId, @PathVariable long experienceId, @RequestBody Experience experience) throws ExperienceNotFoundException {
-
-        if (experience != null) {
-            Experience experienceInDB = experienceService.getExperience(experienceId);
-
-            if (experienceInDB != null && experienceInDB.getEmployee().getId() == userId) {
-                Experience updatedExperience = experienceService.updateExperience(experience);
-                return new ResponseEntity<>(updatedExperience, HttpStatus.OK);
-            }
-
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-    }
-
-    @DeleteMapping("/{userId}/experiences/{experienceId}")
-    public ResponseEntity<?> deleteUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws ExperienceNotFoundException {
-        Experience experience = experienceService.getExperience(experienceId);
-
-        if (experience != null && experience.getEmployee().getId() == userId) {
-            experienceService.deleteExperience(experience);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-
-       return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-
-    }
-
-
-
-
 }

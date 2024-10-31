@@ -11,7 +11,7 @@ import lombok.Data;
 public class Skill {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private int id;
 
     @Column(nullable = false)

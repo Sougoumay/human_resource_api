@@ -17,4 +17,11 @@ public class SkillExceptionHandler extends ResponseEntityExceptionHandler {
         headers.setContentType(MediaType.TEXT_PLAIN);
         return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(SkillAlreadyExistException.class)
+    public ResponseEntity<String> skillAlreadyExistExceptionHandler(SkillAlreadyExistException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_ACCEPTABLE);
+    }
 }

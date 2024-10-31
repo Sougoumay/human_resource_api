@@ -2,11 +2,13 @@ package hamid.sougouma.human_resource.service;
 
 import hamid.sougouma.human_resource.dao.SkillRepository;
 import hamid.sougouma.human_resource.entity.Skill;
+import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SkillServiceImpl implements SkillService {
@@ -32,20 +34,31 @@ public class SkillServiceImpl implements SkillService {
         return skillRepository.findByName(name).orElseThrow(() -> new SkillNotFoundException(name));
     }
 
-    @Transactional
     @Override
-    public Skill addSkill(Skill skill) {
+    public Skill addSkill(Skill skill) throws SkillAlreadyExistException {
+
+        Optional<Skill> optionalSkill = skillRepository.findByNameAndLevel(skill.getName(), skill.getLevel());
+
+        if (optionalSkill.isPresent()) {
+            throw new SkillAlreadyExistException(skill.getName(), skill.getLevel());
+        }
+
         return skillRepository.save(skill);
     }
 
 
-    @Transactional
     @Override
-    public Skill updateSkill(Skill skill) {
+    public Skill updateSkill(Skill skill) throws SkillAlreadyExistException {
+
+        Optional<Skill> optionalSkill = skillRepository.findByNameAndLevel(skill.getName(), skill.getLevel());
+
+        if (optionalSkill.isPresent()) {
+            throw new SkillAlreadyExistException(skill.getName(), skill.getLevel());
+        }
+
         return skillRepository.save(skill);
     }
 
-    @Transactional
     @Override
     public void deleteSkill(int id) throws SkillNotFoundException {
         Skill skill = this.getSkill(id);
