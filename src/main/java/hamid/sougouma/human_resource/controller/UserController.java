@@ -1,10 +1,13 @@
 package hamid.sougouma.human_resource.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import hamid.sougouma.human_resource.dto.EmployeDTO;
 import hamid.sougouma.human_resource.dto.SetKillsToEmployeeRecord;
+import hamid.sougouma.human_resource.dto.Views;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.exception.RoleNotFoundException;
+import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.EmployeeSkillService;
 import hamid.sougouma.human_resource.service.SkillService;
@@ -36,6 +39,7 @@ public class UserController {
         this.skillService = skillService;
     }
 
+    @JsonView(Views.Resume.class)
     @GetMapping
     public ResponseEntity<Collection<Employee>> users() {
 
@@ -44,11 +48,18 @@ public class UserController {
         return ResponseEntity.ok(employees);
     }
 
+    @JsonView(Views.Complet.class)
     @GetMapping("/{id}")
-    public ResponseEntity<Employee> findUserByid(@PathVariable long id) throws UserNotFoundException {
-        return ResponseEntity.ok(userService.findById(id));
+    public ResponseEntity<EmployeDTO> findUserByid(@PathVariable long id) throws UserNotFoundException {
+
+        Employee employee = userService.findById(id);
+        EmployeDTO employeDTO = userService.getEmployeeDTOFromEmployee(employee);
+        employeDTO.setSkills(employeeSkillService.getEmployeeSkills(employee));
+
+        return ResponseEntity.ok(employeDTO);
     }
 
+    @JsonView(Views.Complet.class)
     @Transactional
     @PostMapping("")
     public ResponseEntity<EmployeDTO> addUser(@RequestBody EmployeDTO employeDTO, UriComponentsBuilder uriComponentsBuilder) throws RoleNotFoundException {
@@ -60,22 +71,12 @@ public class UserController {
 
         if (createdEmployee != null) {
 
-            Set<Skill> skills = employeDTO.getSkills();
-
-            Set<Skill> skillsToReturn = new HashSet<>();
-
-            if (skills != null) {
-                skillsToReturn = skillService.addAllSkills(skills);
-                skillsToReturn = employeeSkillService.addEmployeeSkills(createdEmployee, skillsToReturn);
-            }
-
-            employeDTO = userService.getEmployeeDTOFromEmployee(employee);
-            employeDTO.setSkills(skillsToReturn);
+           employeDTO = setEmployeeSkills(employeDTO, createdEmployee);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(
                     uriComponentsBuilder
-                            .path("/{id}")
+                            .path("/users/{id}")
                             .buildAndExpand(createdEmployee.getId())
                             .toUri()
             );
@@ -88,18 +89,27 @@ public class UserController {
 
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateUser(@PathVariable(value = "id") long userId, @RequestBody Employee employee) throws UserNotFoundException {
 
-        if (employee != null && employee.getId() == userId) {
+    @JsonView(Views.Complet.class)
+    @Transactional
+    @PutMapping("/{id}")
+    public ResponseEntity<EmployeDTO> updateUser(@PathVariable(value = "id") long userId, @RequestBody EmployeDTO employeDTO) throws UserNotFoundException {
+
+        if (employeDTO != null && employeDTO.getId() == userId) {
+            Employee employee = userService.getEmployeeFromDTO(employeDTO);
+
             Employee updatedEmployee = userService.updateUser(employee);
 
-            return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
+            employeDTO = setEmployeeSkills(employeDTO, updatedEmployee);
+            System.out.println(employeDTO.toString());
+//            return new ResponseEntity<>(employeDTO, HttpStatus.OK);
+            return ResponseEntity.ok(employeDTO);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @JsonView(Views.Resume.class)
     @DeleteMapping("/{id}")
     private ResponseEntity<?> deleteUser(@PathVariable long id){
 
@@ -115,12 +125,14 @@ public class UserController {
 
     }
 
+    @JsonView(Views.Complet.class)
     @GetMapping("/{userId}/skills")
     public ResponseEntity<Set<Skill>> getEmployeeSkills(@PathVariable long userId) throws UserNotFoundException {
         Employee employee = userService.findById(userId);
         return ResponseEntity.ok(employeeSkillService.getEmployeeSkills(employee));
     }
 
+    @JsonView(Views.Complet.class)
     @PostMapping("/{id}/skills")
     public ResponseEntity<Set<Skill>> addSkill(@PathVariable long id, @RequestBody SetKillsToEmployeeRecord skillRecord, UriComponentsBuilder builder)
             throws UserNotFoundException
@@ -133,12 +145,48 @@ public class UserController {
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(
                 builder
-                        .path("/{id}/skills")
+                        .path("/users/{id}/skills")
                         .buildAndExpand(id)
                         .toUri()
         );
 
         return new ResponseEntity<>(skills, headers, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{userId}/skills/{skillId}")
+    public ResponseEntity<?> deleteSkill(@PathVariable long userId, @PathVariable int skillId) {
+        try {
+            Employee employee = userService.findById(userId);
+            Skill skill = skillService.getSkill(skillId);
+            employeeSkillService.removeEmployeeSkills(employee, skill);
+        } catch (UserNotFoundException e) {
+            System.out.println("Someone tried to delete skill for an Employee who doesn't exist. the Given Id is : " + userId);
+        } catch (SkillNotFoundException e) {
+            System.out.println("Someone tried to delete skill that doesn't exist. the Given Id is : " + skillId);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+    public EmployeDTO setEmployeeSkills(EmployeDTO employeDTO, Employee employee1) {
+
+        Set<Skill> skills = employeDTO.getSkills();
+
+        Set<Skill> skillsToReturn = new HashSet<>();
+
+        Employee employee = userService.getEmployeeFromDTO(employeDTO);
+
+
+        if (skills != null) {
+            skillsToReturn = skillService.addAllSkills(skills);
+            skillsToReturn = employeeSkillService.addEmployeeSkills(employee1, skillsToReturn);
+        }
+
+        employeDTO = userService.getEmployeeDTOFromEmployee(employee);
+        employeDTO.setSkills(skillsToReturn);
+
+        return employeDTO;
     }
 
 

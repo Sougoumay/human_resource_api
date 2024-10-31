@@ -47,4 +47,17 @@ public class EmployeeSkillServiceImpl implements EmployeeSkillService {
 
         return skills;
     }
+
+    @Override
+    public Set<Employee> getSkillEmployeess(Skill skill) {
+        Set<EmployeeSkill> employeeSkills = employeeSkillRepository.findBySkill(skill);
+        Set<Employee> employees = new HashSet<>();
+        employeeSkills.forEach(e -> employees.add(e.getEmployee()));
+        return employees;
+    }
+
+    @Override
+    public void removeEmployeeSkills(Employee employee, Skill skill) {
+        employeeSkillRepository.delete(employeeSkillRepository.findBySkillAndEmployee(skill, employee));
+    }
 }

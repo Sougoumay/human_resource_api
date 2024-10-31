@@ -12,4 +12,8 @@ public interface EmployeeSkillService {
     Set<Skill> addEmployeeSkill(Employee employee, Skill skill);
 
     Set<Skill> getEmployeeSkills(Employee employee);
+
+    Set<Employee> getSkillEmployeess(Skill skill);
+
+    void removeEmployeeSkills(Employee employee, Skill skill);
 }
