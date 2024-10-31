@@ -13,4 +13,6 @@ public interface SkillRepository extends JpaRepository<Skill, Integer> {
     Optional<Skill> findByName(String name);
 
     Optional<Skill> findByNameAndLevel(String name, SkillLevelEnum level);
+
+    Optional<Skill> findByIdOrNameAndLevel(int id, String name, SkillLevelEnum level);
 }

@@ -7,8 +7,10 @@ import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class SkillServiceImpl implements SkillService {
@@ -63,5 +65,24 @@ public class SkillServiceImpl implements SkillService {
     public void deleteSkill(int id) throws SkillNotFoundException {
         Skill skill = this.getSkill(id);
         skillRepository.delete(skill);
+    }
+
+    @Override
+    public Set<Skill> addAllSkills(Set<Skill> skills) {
+        Set<Skill> skillsToReturn = new HashSet<>();
+
+        for (Skill skill : skills) {
+            Optional<Skill> skillFromDB = skill.getId() == 0 ?
+                    skillRepository.findByNameAndLevel(skill.getName(), skill.getLevel()) :
+                    skillRepository.findByIdOrNameAndLevel(skill.getId(), skill.getName(), skill.getLevel());
+
+            if (skillFromDB.isPresent()) {
+                skillsToReturn.add(skillFromDB.get());
+            } else {
+                skillsToReturn.add(skillRepository.save(skill));
+            }
+        }
+
+        return skillsToReturn;
     }
 }

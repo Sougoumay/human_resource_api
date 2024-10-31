@@ -4,6 +4,8 @@ import hamid.sougouma.human_resource.enums.SkillLevelEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.Set;
+
 
 @Data
 @Entity
@@ -20,4 +22,7 @@ public class Skill {
     @Column(name = "level", nullable = false)
     @Enumerated(EnumType.STRING)
     private SkillLevelEnum level;
+
+    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL)
+    private Set<EmployeeSkill> employees;
 }

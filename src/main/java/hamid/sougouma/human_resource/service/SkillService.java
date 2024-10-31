@@ -5,6 +5,7 @@ import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 public interface SkillService {
 
@@ -19,4 +20,6 @@ public interface SkillService {
     Skill updateSkill(Skill skill) throws SkillAlreadyExistException;
 
     void deleteSkill(int id) throws SkillNotFoundException;
+
+    Set<Skill> addAllSkills(Set<Skill> skills);
 }

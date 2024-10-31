@@ -1,5 +1,6 @@
 package hamid.sougouma.human_resource.service;
 
+import hamid.sougouma.human_resource.dto.EmployeDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.exception.RoleNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
@@ -21,6 +22,10 @@ public interface UserService {
     Employee updateUser(Employee employee) throws UserNotFoundException;
 
     void deleteUser(long id) throws UserNotFoundException;
+
+    Employee getEmployeeFromDTO(EmployeDTO employeDTO);
+
+    EmployeDTO getEmployeeDTOFromEmployee(Employee employee);
 
 
 

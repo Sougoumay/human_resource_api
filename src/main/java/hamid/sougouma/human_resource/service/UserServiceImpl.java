@@ -2,11 +2,13 @@ package hamid.sougouma.human_resource.service;
 
 import hamid.sougouma.human_resource.dao.RoleRepository;
 import hamid.sougouma.human_resource.dao.UserRepository;
+import hamid.sougouma.human_resource.dto.EmployeDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Role;
 import hamid.sougouma.human_resource.exception.RoleNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -72,5 +74,37 @@ public class UserServiceImpl implements UserService {
 
         Employee employee = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userRepository.delete(employee);
+    }
+
+    @Override
+    public Employee getEmployeeFromDTO(@NotNull EmployeDTO employeDTO) {
+        Employee employee = new Employee();
+        employee.setBirthday(employeDTO.getBirthday());
+        employee.setFirstName(employeDTO.getFirstName());
+        employee.setLastName(employeDTO.getLastName());
+        employee.setEmail(employeDTO.getEmail());
+        employee.setId(employeDTO.getId());
+        employee.setPassword(employeDTO.getPassword());
+        employee.setAddress(employeDTO.getAddress());
+        employee.setGender(employeDTO.getGender());
+        employee.setPhone(employeDTO.getPhone());
+        employee.setRole(employeDTO.getRole());
+        return employee;
+    }
+
+    @Override
+    public EmployeDTO getEmployeeDTOFromEmployee(@NotNull Employee employee) {
+        EmployeDTO employeeDTO = new EmployeDTO();
+        employeeDTO.setBirthday(employee.getBirthday());
+        employeeDTO.setFirstName(employee.getFirstName());
+        employeeDTO.setLastName(employee.getLastName());
+        employeeDTO.setEmail(employee.getEmail());
+        employeeDTO.setId(employee.getId());
+        employeeDTO.setPassword(employee.getPassword());
+        employeeDTO.setAddress(employee.getAddress());
+        employeeDTO.setGender(employee.getGender());
+        employeeDTO.setPhone(employee.getPhone());
+        employeeDTO.setRole(employee.getRole());
+        return employeeDTO;
     }
 }

@@ -1,14 +1,15 @@
 package hamid.sougouma.human_resource.controller;
 
-import hamid.sougouma.human_resource.dto.ExperienceDTO;
-import hamid.sougouma.human_resource.dto.UserDTO;
+import hamid.sougouma.human_resource.dto.EmployeDTO;
+import hamid.sougouma.human_resource.dto.SetKillsToEmployeeRecord;
 import hamid.sougouma.human_resource.entity.Employee;
-import hamid.sougouma.human_resource.entity.Experience;
-import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
+import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.exception.RoleNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
-import hamid.sougouma.human_resource.service.ExperienceService;
+import hamid.sougouma.human_resource.service.EmployeeSkillService;
+import hamid.sougouma.human_resource.service.SkillService;
 import hamid.sougouma.human_resource.service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +18,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
+    private final EmployeeSkillService employeeSkillService;
+    private final SkillService skillService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, EmployeeSkillService employeeSkillService, SkillService skillService) {
         this.userService = userService;
+        this.employeeSkillService = employeeSkillService;
+        this.skillService = skillService;
     }
 
     @GetMapping
@@ -42,23 +49,38 @@ public class UserController {
         return ResponseEntity.ok(userService.findById(id));
     }
 
+    @Transactional
     @PostMapping("")
-    public ResponseEntity<Employee> addUser(@RequestBody Employee employee, UriComponentsBuilder uriComponentsBuilder) throws RoleNotFoundException {
+    public ResponseEntity<EmployeDTO> addUser(@RequestBody EmployeDTO employeDTO, UriComponentsBuilder uriComponentsBuilder) throws RoleNotFoundException {
+
+        Employee employee = userService.getEmployeeFromDTO(employeDTO);
 
         System.out.println(employee.toString());
         Employee createdEmployee = userService.addUser(employee);
 
         if (createdEmployee != null) {
 
+            Set<Skill> skills = employeDTO.getSkills();
+
+            Set<Skill> skillsToReturn = new HashSet<>();
+
+            if (skills != null) {
+                skillsToReturn = skillService.addAllSkills(skills);
+                skillsToReturn = employeeSkillService.addEmployeeSkills(createdEmployee, skillsToReturn);
+            }
+
+            employeDTO = userService.getEmployeeDTOFromEmployee(employee);
+            employeDTO.setSkills(skillsToReturn);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(
                     uriComponentsBuilder
-                            .path("/users/{id}")
+                            .path("/{id}")
                             .buildAndExpand(createdEmployee.getId())
                             .toUri()
             );
 
-            return new ResponseEntity<>(headers, HttpStatus.CREATED);
+            return new ResponseEntity<>(employeDTO, headers, HttpStatus.CREATED);
 
         }
 
@@ -92,4 +114,32 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
 
     }
+
+    @GetMapping("/{userId}/skills")
+    public ResponseEntity<Set<Skill>> getEmployeeSkills(@PathVariable long userId) throws UserNotFoundException {
+        Employee employee = userService.findById(userId);
+        return ResponseEntity.ok(employeeSkillService.getEmployeeSkills(employee));
+    }
+
+    @PostMapping("/{id}/skills")
+    public ResponseEntity<Set<Skill>> addSkill(@PathVariable long id, @RequestBody SetKillsToEmployeeRecord skillRecord, UriComponentsBuilder builder)
+            throws UserNotFoundException
+    {
+        Employee employee = userService.findById(id);
+        employeeSkillService.addEmployeeSkills(employee, skillRecord.skills());
+
+        Set<Skill> skills = employeeSkillService.getEmployeeSkills(employee);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(
+                builder
+                        .path("/{id}/skills")
+                        .buildAndExpand(id)
+                        .toUri()
+        );
+
+        return new ResponseEntity<>(skills, headers, HttpStatus.CREATED);
+    }
+
+
 }

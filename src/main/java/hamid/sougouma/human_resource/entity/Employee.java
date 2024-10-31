@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -50,6 +51,9 @@ public class Employee {
 
     @OneToOne(cascade = CascadeType.ALL)
     private Role role;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee")
+    private Set<EmployeeSkill> skills;
 
 
     @Override
