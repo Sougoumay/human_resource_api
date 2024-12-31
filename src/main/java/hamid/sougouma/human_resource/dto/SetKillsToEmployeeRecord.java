@@ -4,5 +4,5 @@ import hamid.sougouma.human_resource.entity.Skill;
 
 import java.util.Set;
 
-public record SetKillsToEmployeeRecord(Set<Skill> skills) {
+public record SetKillsToEmployeeRecord(Set<SkillDTO> skills) {
 }

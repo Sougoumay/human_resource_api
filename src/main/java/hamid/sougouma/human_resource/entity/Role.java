@@ -11,11 +11,8 @@ import lombok.Data;
 public class Role {
 
     @Id @GeneratedValue
-    private long id;
+    private int id;
 
-    @NotBlank
-    @NotEmpty
-    @NotNull
     @Column(unique = true)
     private String name;
 

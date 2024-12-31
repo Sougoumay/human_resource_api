@@ -11,19 +11,27 @@ import java.util.Set;
 @Data
 public class SkillDTO {
 
-    public SkillDTO(int id, String name, Set<Employee> employees) {
+    public SkillDTO() {}
+
+    public SkillDTO(int id, String name, String level) {
         this.id = id;
         this.name = name;
+        this.level = level;
+    }
+
+    public SkillDTO(int id, String name, String level, Set<EmployeeDTO> employees) {
+        this.id = id;
+        this.name = name;
+        this.level = level;
         this.employees = employees;
     }
 
-    @JsonView(Views.Resume.class)
     private int id;
 
-    @JsonView(Views.Resume.class)
     private String name;
 
-    @JsonView(Views.Complet.class)
-    private Set<Employee> employees;
+    private String level;
+
+    private Set<EmployeeDTO> employees;
 
 }

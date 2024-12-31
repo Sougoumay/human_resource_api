@@ -1,12 +1,14 @@
 package hamid.sougouma.human_resource.controller;
 
+import hamid.sougouma.human_resource.dto.EmployeeDTO;
 import hamid.sougouma.human_resource.dto.ExperienceDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Experience;
+import hamid.sougouma.human_resource.exception.EmployeeNotFoundException;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
 import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.ExperienceService;
-import hamid.sougouma.human_resource.service.UserService;
+import hamid.sougouma.human_resource.service.EmployeeService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,27 +23,27 @@ import java.util.List;
 public class ExperienceController {
 
     private final ExperienceService experienceService;
-    private final UserService userService;
+    private final EmployeeService employeeService;
 
-    public ExperienceController(ExperienceService experienceService, UserService userService) {
+    public ExperienceController(ExperienceService experienceService, EmployeeService employeeService) {
         this.experienceService = experienceService;
-        this.userService = userService;
+        this.employeeService = employeeService;
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Experience>> getUserExperiences(@PathVariable long userId) throws UserNotFoundException {
+    public ResponseEntity<Collection<Experience>> getUserExperiences(@PathVariable long userId) throws EmployeeNotFoundException {
 
-        Employee employee = userService.findById(userId);
+        EmployeeDTO employee = employeeService.findById(userId);
         List<Experience> experiences = experienceService.getUserExperiences(employee.getId());
 
         return new ResponseEntity<>(experiences, HttpStatus.OK);
     }
 
     @GetMapping("/{experienceId}")
-    public ResponseEntity<Experience> getUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws UserNotFoundException, ExperienceNotFoundException {
+    public ResponseEntity<Experience> getUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException {
         // TODO : don't retrieve the users et theirs roles with the experiences
 
-        Employee employee = userService.findById(userId);
+        EmployeeDTO employee = employeeService.findById(userId);
         Experience experience = experienceService.getExperience(experienceId);
         return new ResponseEntity<>(experience, HttpStatus.OK);
     }
@@ -49,12 +51,11 @@ public class ExperienceController {
 
     @PostMapping
     public ResponseEntity<Experience> addUserExperience(@PathVariable long userId, @RequestBody ExperienceDTO experienceDTO, UriComponentsBuilder uriComponentsBuilder)
-            throws UserNotFoundException
-    {
-        Employee employee = userService.findById(userId);
+            throws UserNotFoundException, EmployeeNotFoundException {
+        EmployeeDTO employee = employeeService.findById(userId);
         if (experienceDTO != null && employee != null) {
             Experience experience = experienceService.getExperienceFromDTO(experienceDTO);
-            experience.setEmployee(employee);
+//            experience.setEmployee(employee);
             Experience createdExperience = experienceService.addExperience(experience);
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(

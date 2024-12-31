@@ -1,13 +1,12 @@
 package hamid.sougouma.human_resource.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import hamid.sougouma.human_resource.dao.SkillRepository;
 import hamid.sougouma.human_resource.dto.SkillDTO;
-import hamid.sougouma.human_resource.dto.Views;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
+import hamid.sougouma.human_resource.service.EmployeeService;
 import hamid.sougouma.human_resource.service.EmployeeSkillService;
 import hamid.sougouma.human_resource.service.SkillService;
 import org.springframework.http.HttpHeaders;
@@ -25,52 +24,53 @@ public class SkillController {
 
     private final SkillService skillService;
     private final EmployeeSkillService employeeSkillService;
+    private final EmployeeService employeeService;
 
-    public SkillController(SkillService skillService, EmployeeSkillService employeeSkillService) {
+    public SkillController(SkillService skillService, EmployeeSkillService employeeSkillService, EmployeeService employeeService) {
         this.skillService = skillService;
         this.employeeSkillService = employeeSkillService;
+        this.employeeService = employeeService;
     }
 
-    @JsonView(Views.Resume.class)
     @GetMapping
-    public ResponseEntity<List<Skill>> getSkills() {
+    public ResponseEntity<List<SkillDTO>> getSkills() {
 
-        List<Skill> skills = skillService.getSkills();
+        List<SkillDTO> skills = skillService.getSkills();
 
         return ResponseEntity.ok(skills);
 
     }
 
-    @JsonView(Views.Complet.class)
     @GetMapping("/{id}")
     public ResponseEntity<SkillDTO> getSkill(@PathVariable int id) throws SkillNotFoundException {
-        Skill skill = skillService.getSkill(id);
-        Set<Employee> employees = employeeSkillService.getSkillEmployeess(skill);
-        return new ResponseEntity<>(new SkillDTO(skill.getId(), skill.getName(), employees), HttpStatus.OK);
+        skillService.setEmployeeService(employeeService);
+        SkillDTO skill = skillService.getSkill(id);
+        return new ResponseEntity<>(skill, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Skill> createSkill(@RequestBody Skill skill, UriComponentsBuilder ucBuilder) throws SkillAlreadyExistException {
-        skill = skillService.addSkill(skill);
+    public ResponseEntity<SkillDTO> createSkill(@RequestBody SkillDTO skill, UriComponentsBuilder ucBuilder) throws SkillAlreadyExistException {
+        Skill skill1 = skillService.addSkill(skill);
+        SkillDTO dto = new SkillDTO(skill1.getId(), skill1.getName(), skill1.getLevel().name());
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(
                 ucBuilder
                         .path("/skills/{id}")
-                        .buildAndExpand(skill.getId())
+                        .buildAndExpand(dto.getId())
                         .toUri()
         );
 
-        return new ResponseEntity<>(skill, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(dto, headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Skill> updateSkill(@RequestBody Skill skill, @PathVariable int id) throws SkillAlreadyExistException, SkillNotFoundException {
+    public ResponseEntity<SkillDTO> updateSkill(@RequestBody SkillDTO dto, @PathVariable int id) throws SkillAlreadyExistException, SkillNotFoundException {
 
-        if (skill.getId() == id) {
+        if (dto.getId() == id) {
             skillService.getSkill(id);
-            Skill updatedSkill = skillService.updateSkill(skill);
-
-            return new ResponseEntity<>(updatedSkill, HttpStatus.OK);
+            Skill updatedSkill = skillService.updateSkill(dto);
+            SkillDTO skillDTO = new SkillDTO(updatedSkill.getId(), updatedSkill.getName(), updatedSkill.getLevel().name());
+            return new ResponseEntity<>(skillDTO, HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
