@@ -24,4 +24,18 @@ public class SkillExceptionHandler extends ResponseEntityExceptionHandler {
         headers.setContentType(MediaType.TEXT_PLAIN);
         return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_ACCEPTABLE);
     }
+
+    @ExceptionHandler(SkillNotAuthorizedToDeleteException.class)
+    public ResponseEntity<String> SkillNotAuthorizedToDeleteExceptionHandler(SkillNotAuthorizedToDeleteException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @ExceptionHandler(SkillLevelNotFoundException.class)
+    public ResponseEntity<String> SkillLevelNotFoundExceptionHandler(SkillLevelNotFoundException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return new ResponseEntity<>(e.getMessage(), headers, HttpStatus.NOT_ACCEPTABLE);
+    }
 }

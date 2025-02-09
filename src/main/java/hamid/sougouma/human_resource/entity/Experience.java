@@ -1,10 +1,6 @@
 package hamid.sougouma.human_resource.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,28 +10,22 @@ import java.time.LocalDate;
 public class Experience {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotNull
-    @NotBlank
-    @NotEmpty
-    @Size(min = 2, max = 15)
+    @Column(nullable = false)
     private String company;
 
-    @NotNull
-    @NotBlank
-    @NotEmpty
-    @Size(min = 2, max = 15)
+    @Column(nullable = false)
     private String title;
 
-    @Size(min = 2, max = 50)
+    @Column(nullable = false)
     private String description;
 
-    @NotNull
+    @Column(nullable = false)
     private LocalDate startDate;
 
-    @NotNull
+    @Column(nullable = false)
     private LocalDate endDate;
 
     @ManyToOne

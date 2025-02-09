@@ -3,9 +3,7 @@ package hamid.sougouma.human_resource.service;
 import hamid.sougouma.human_resource.dao.RoleRepository;
 import hamid.sougouma.human_resource.dao.EmployeeRepository;
 import hamid.sougouma.human_resource.dao.UserRepository;
-import hamid.sougouma.human_resource.dto.EmployeeDTO;
-import hamid.sougouma.human_resource.dto.SetKillsToEmployeeRecord;
-import hamid.sougouma.human_resource.dto.SkillDTO;
+import hamid.sougouma.human_resource.dto.*;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Role;
 import hamid.sougouma.human_resource.entity.Skill;
@@ -43,21 +41,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(readOnly = true)
     public List<EmployeeDTO> findAll() {
-        List<Employee> employees = employeeRepository.findByActiveTrue();
+        List<Employee> employees = employeeRepository.findAll();
+        return getEmployeeDTOsFromEmployees(employees);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeDTO> findAllFilteredByActive(boolean active) {
+        List<Employee> employees = employeeRepository.findByActive(active);
         return getEmployeeDTOsFromEmployees(employees);
     }
 
     @Override
     public List<Employee> searchByFirstName(String firstName) {
         return employeeRepository.findByFirstNameContainingAndActiveTrue(firstName);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public EmployeeDTO findByEmail(String email) throws UserNotFoundException {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
-
-        return getEmployeeDTOFromEmployee(user.getEmployee());
     }
 
     @Override
@@ -106,22 +103,41 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Set<SkillDTO> addEmployeeSkills(long id, SetKillsToEmployeeRecord record) throws EmployeeNotFoundException, SkillAlreadyExistException {
+    public Set<SkillDTO> addEmployeeSkills(long id, SetKillsToEmployeeRecord record) throws EmployeeNotFoundException, SkillAlreadyExistException, SkillLevelNotFoundException, SkillNotFoundException {
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
         Set<Skill> skills = new HashSet<>();
         for (SkillDTO dto : record.skills()) {
             Skill skill;
 
             try {
-                skill = skillService.getSkillByNameAndLevel(dto.getName(), SkillLevelEnum.valueOf(dto.getLevel()));
+                skill = skillService.getSkillByNameAndLevel(dto.getName(), getLevelEnum(dto.getLevel().toUpperCase()));
             } catch (SkillNotFoundException e) {
                 skill = skillService.addSkill(dto);
             }
 
             skills.add(skill);
         }
-        skills = employeeSkillService.addEmployeeSkills(employee, skills);
-        return skillService.getSkillDTOs(skills);
+        EmployeeDTO employeeDTO = getEmployeeDTOFromEmployee(employee);
+        Set<SkillDTO> skillDTOs = skillService.getSkillDTOs(skills);
+
+        return employeeSkillService.addEmployeeSkills(employeeDTO, skillDTOs);
+    }
+
+    @Override
+    public EmployeeDTO changePassword(PasswordRecord record, long id) throws EmployeeNotFoundException, InvalidPasswordException {
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
+
+        if (!record.password().equals(record.confirmation())) {
+            throw new InvalidPasswordException();
+        }
+
+        User user = employee.getUser();
+        user.setPassword(record.password());
+        userRepository.save(user);
+        EmployeeDTO employeeDTO = getEmployeeDTOFromEmployee(employee);
+        employeeDTO.setPassword(record.password());
+
+        return employeeDTO;
     }
 
     @Override
@@ -132,6 +148,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeDTO.setLastName(employee.getLastName());
         employeeDTO.setEmail(employee.getUser().getEmail());
         employeeDTO.setPhone(employee.getPhone());
+        employeeDTO.setActive(employee.isActive());
         employeeDTO.setAddress(employee.getAddress());
         employeeDTO.setGender(employee.getGender());
         employeeDTO.setRole(employee.getUser().getRole().getName());
@@ -144,8 +161,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeDTO> getEmployeeDTOsFromEmployees(List<Employee> employees) {
         List<EmployeeDTO> employeeDTOs = new ArrayList<>();
         for (Employee employee : employees) {
-            String birth = employee.getBirthday().toString();
-            String hire = employee.getHireDate().toString();
             employeeDTOs.add(getEmployeeDTOFromEmployee(employee));
         }
         return employeeDTOs;
@@ -157,7 +172,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(dto.getPhone());
         employee.setAddress(dto.getAddress());
         employee.setGender(dto.getGender());
-
+        employee.setActive(dto.isActive());
         LocalDate birthday = LocalDate.parse(dto.getBirthday());
         LocalDate hireDate= LocalDate.parse(dto.getHireDate());
         employee.setBirthday(birthday);
@@ -165,5 +180,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employee;
 
+    }
+
+    private SkillLevelEnum getLevelEnum(String level) throws SkillLevelNotFoundException {
+        return switch (level) {
+            case "JUNIOR" -> SkillLevelEnum.JUNIOR;
+            case "SENIOR" -> SkillLevelEnum.SENIOR;
+            case "EXPERT" -> SkillLevelEnum.EXPERT;
+            default -> throw new SkillLevelNotFoundException(level);
+        };
     }
 }

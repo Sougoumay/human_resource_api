@@ -11,4 +11,6 @@ public interface ExperienceRepository extends JpaRepository<Experience, Long> {
 
     List<Experience> findByEmployeeId(Long id);
 
+    Experience findByEmployeeIdAndExperienceId(Long employeeId, Long experienceId);
+
 }

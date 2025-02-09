@@ -4,6 +4,8 @@ import hamid.sougouma.human_resource.dto.SkillDTO;
 import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.enums.SkillLevelEnum;
 import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
+import hamid.sougouma.human_resource.exception.SkillLevelNotFoundException;
+import hamid.sougouma.human_resource.exception.SkillNotAuthorizedToDeleteException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -16,16 +18,16 @@ public interface SkillService {
 
     Skill getSkillByNameAndLevel(String name, SkillLevelEnum level) throws SkillNotFoundException;
 
-    Skill addSkill(SkillDTO skill) throws SkillAlreadyExistException;
+    Skill addSkill(SkillDTO skill) throws SkillAlreadyExistException, SkillLevelNotFoundException;
 
     @Autowired
     void setEmployeeService(EmployeeService employeeService);
 
     List<SkillDTO> getSkills();
 
-    Skill updateSkill(SkillDTO skill) throws SkillAlreadyExistException;
+    Skill updateSkill(SkillDTO skill) throws SkillAlreadyExistException, SkillLevelNotFoundException, SkillNotFoundException;
 
-    void deleteSkill(int id) throws SkillNotFoundException;
+    void deleteSkill(int id) throws SkillNotFoundException, SkillNotAuthorizedToDeleteException;
 
     Set<Skill> addAllSkills(Set<Skill> skills);
 

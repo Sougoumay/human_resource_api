@@ -1,13 +1,8 @@
 package hamid.sougouma.human_resource.service;
 
-import hamid.sougouma.human_resource.dto.EmployeeDTO;
-import hamid.sougouma.human_resource.dto.SetKillsToEmployeeRecord;
-import hamid.sougouma.human_resource.dto.SkillDTO;
+import hamid.sougouma.human_resource.dto.*;
 import hamid.sougouma.human_resource.entity.Employee;
-import hamid.sougouma.human_resource.exception.EmployeeNotFoundException;
-import hamid.sougouma.human_resource.exception.RoleNotFoundException;
-import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
-import hamid.sougouma.human_resource.exception.UserNotFoundException;
+import hamid.sougouma.human_resource.exception.*;
 
 import java.util.List;
 import java.util.Set;
@@ -16,9 +11,9 @@ public interface EmployeeService {
 
     List<EmployeeDTO> findAll();
 
-    List<Employee> searchByFirstName(String firstName);
+    List<EmployeeDTO> findAllFilteredByActive(boolean active);
 
-    EmployeeDTO findByEmail(String email) throws UserNotFoundException;
+    List<Employee> searchByFirstName(String firstName);
 
     EmployeeDTO findById(long id) throws EmployeeNotFoundException;
 
@@ -32,5 +27,10 @@ public interface EmployeeService {
 
     List<EmployeeDTO> getEmployeeDTOsFromEmployees(List<Employee> employees);
 
-    Set<SkillDTO> addEmployeeSkills(long id, SetKillsToEmployeeRecord record) throws EmployeeNotFoundException, SkillAlreadyExistException;
+    Set<SkillDTO> addEmployeeSkills(long id, SetKillsToEmployeeRecord record)
+            throws EmployeeNotFoundException, SkillAlreadyExistException,
+            SkillLevelNotFoundException, SkillNotFoundException;
+
+    EmployeeDTO changePassword(PasswordRecord record, long id) throws
+            EmployeeNotFoundException, InvalidPasswordException;
 }

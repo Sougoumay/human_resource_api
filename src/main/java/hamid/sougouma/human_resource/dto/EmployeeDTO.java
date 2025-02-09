@@ -33,6 +33,8 @@ public class EmployeeDTO {
     @NotEmpty
     private String password;
 
+    private boolean active;
+
     private String phone;
 
     private String address;

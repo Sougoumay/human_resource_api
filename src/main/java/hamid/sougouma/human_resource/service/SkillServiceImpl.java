@@ -4,9 +4,12 @@ import hamid.sougouma.human_resource.dao.SkillRepository;
 import hamid.sougouma.human_resource.dto.EmployeeDTO;
 import hamid.sougouma.human_resource.dto.SkillDTO;
 import hamid.sougouma.human_resource.entity.Employee;
+import hamid.sougouma.human_resource.entity.EmployeeSkill;
 import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.enums.SkillLevelEnum;
 import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
+import hamid.sougouma.human_resource.exception.SkillLevelNotFoundException;
+import hamid.sougouma.human_resource.exception.SkillNotAuthorizedToDeleteException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -64,9 +67,9 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
-    public Skill addSkill(SkillDTO dto) throws SkillAlreadyExistException {
+    public Skill addSkill(SkillDTO dto) throws SkillAlreadyExistException, SkillLevelNotFoundException {
 
-        SkillLevelEnum level = SkillLevelEnum.valueOf(dto.getLevel());
+        SkillLevelEnum level = this.getLevelEnum(dto.getLevel().toUpperCase());
 
         Optional<Skill> optionalSkill = skillRepository.findByNameAndLevel(dto.getName(), level);
 
@@ -81,20 +84,30 @@ public class SkillServiceImpl implements SkillService {
 
 
     @Override
-    public Skill updateSkill(SkillDTO skill) throws SkillAlreadyExistException {
+    public Skill updateSkill(SkillDTO dto) throws SkillAlreadyExistException, SkillLevelNotFoundException, SkillNotFoundException {
 
-        Optional<Skill> optionalSkill = skillRepository.findByNameAndLevel(skill.getName(), SkillLevelEnum.valueOf(skill.getLevel()));
+        SkillLevelEnum levelEnum = this.getLevelEnum(dto.getLevel().toUpperCase());
+
+        Optional<Skill> optionalSkill = skillRepository.findByNameAndLevel(dto.getName(), levelEnum);
 
         if (optionalSkill.isPresent()) {
-            throw new SkillAlreadyExistException(skill.getName(), SkillLevelEnum.valueOf(skill.getLevel()));
+            throw new SkillAlreadyExistException(dto.getName(), levelEnum);
         }
 
-        return skillRepository.save(optionalSkill.get());
+        Skill skill = skillRepository.findById(dto.getId()).orElseThrow(() -> new SkillNotFoundException(dto.getId()));
+        skill.setName(dto.getName());
+        skill.setLevel(levelEnum);
+        return skillRepository.save(skill);
     }
 
     @Override
-    public void deleteSkill(int id) throws SkillNotFoundException {
+    public void deleteSkill(int id) throws SkillNotFoundException, SkillNotAuthorizedToDeleteException {
         Skill skill = skillRepository.findById(id).orElseThrow(() -> new SkillNotFoundException(id));
+        if (skill.getEmployees().size() > 0) {
+            System.out.println(skill.getEmployees().size());
+            throw new SkillNotAuthorizedToDeleteException(skill.getId());
+        }
+
         skillRepository.delete(skill);
     }
 
@@ -124,6 +137,15 @@ public class SkillServiceImpl implements SkillService {
             skillDTOs.add(new SkillDTO(skill.getId(),skill.getName(),skill.getLevel().name()));
         }
         return skillDTOs;
+    }
+
+    private SkillLevelEnum getLevelEnum(String level) throws SkillLevelNotFoundException {
+        return switch (level) {
+            case "JUNIOR" -> SkillLevelEnum.JUNIOR;
+            case "SENIOR" -> SkillLevelEnum.SENIOR;
+            case "EXPERT" -> SkillLevelEnum.EXPERT;
+            default -> throw new SkillLevelNotFoundException(level);
+        };
     }
 
 }

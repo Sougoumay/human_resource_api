@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    List<Employee> findByActiveTrue();
+    List<Employee> findByActive(boolean active);
 
     List<Employee> findByFirstNameContainingAndActiveTrue(String firstName);
 

@@ -1,15 +1,10 @@
 package hamid.sougouma.human_resource.controller;
 
-import hamid.sougouma.human_resource.dto.EmployeeDTO;
-import hamid.sougouma.human_resource.dto.SetKillsToEmployeeRecord;
-import hamid.sougouma.human_resource.dto.SkillDTO;
-import hamid.sougouma.human_resource.entity.Employee;
-import hamid.sougouma.human_resource.entity.Skill;
+import hamid.sougouma.human_resource.dto.*;
 import hamid.sougouma.human_resource.exception.*;
 import hamid.sougouma.human_resource.service.EmployeeSkillService;
 import hamid.sougouma.human_resource.service.SkillService;
 import hamid.sougouma.human_resource.service.EmployeeService;
-import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,16 +32,24 @@ public class EmployeeController {
 
 
     @GetMapping
-    public ResponseEntity<Collection<EmployeeDTO>> getAll() {
+    public ResponseEntity<Collection<EmployeeDTO>> findAll() {
 
         List<EmployeeDTO> employees = employeeService.findAll();
 
         return ResponseEntity.ok(employees);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<Collection<EmployeeDTO>> findAllFilteredByActive(@RequestParam(name = "value") boolean active) {
+
+        List<EmployeeDTO> employees = employeeService.findAllFilteredByActive(active);
+
+        return ResponseEntity.ok(employees);
+    }
+
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> findUserByid(@PathVariable long id) throws EmployeeNotFoundException {
+    public ResponseEntity<EmployeeDTO> findEmployeeById(@PathVariable long id) throws EmployeeNotFoundException {
 
         EmployeeDTO employeeDTO = employeeService.findById(id);
 
@@ -89,9 +91,15 @@ public class EmployeeController {
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @PutMapping("/{id}/credentials")
+    public ResponseEntity<EmployeeDTO> changeCredentials(@PathVariable(value = "id") long employeeId, @RequestBody PasswordRecord record) throws EmployeeNotFoundException, InvalidPasswordException {
+        EmployeeDTO employeeDTO = employeeService.changePassword(record, employeeId);
+        return ResponseEntity.ok(employeeDTO);
+
+    }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<?> deleteUser(@PathVariable long id){
+    private ResponseEntity<?> deleteEmployee(@PathVariable long id){
 
         try {
             employeeService.deleteEmployee(id);
@@ -102,18 +110,18 @@ public class EmployeeController {
         return new ResponseEntity<>(HttpStatus.OK);
 
     }
-//
-//
-//    @GetMapping("/{userId}/skills")
-//    public ResponseEntity<Set<Skill>> getEmployeeSkills(@PathVariable long userId) throws UserNotFoundException {
-//        Employee employee = employeeService.findById(userId);
-//        return ResponseEntity.ok(employeeSkillService.getEmployeeSkills(employee));
-//    }
+
+
+    @GetMapping("/{userId}/skills")
+    public ResponseEntity<Set<SkillDTO>> getEmployeeSkills(@PathVariable long userId) throws EmployeeNotFoundException {
+        Set<SkillDTO> skills = employeeSkillService.getEmployeeSkills(userId);
+        return ResponseEntity.ok(skills);
+    }
 
 
     @PostMapping("/{id}/skills")
     public ResponseEntity<Set<SkillDTO>> addSkill(@PathVariable long id, @RequestBody SetKillsToEmployeeRecord skillRecord, UriComponentsBuilder builder)
-            throws SkillAlreadyExistException, EmployeeNotFoundException {
+            throws SkillAlreadyExistException, EmployeeNotFoundException, SkillLevelNotFoundException, SkillNotFoundException {
 
         if (skillRecord.skills().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
@@ -133,41 +141,17 @@ public class EmployeeController {
         return new ResponseEntity<>(skills, headers, HttpStatus.CREATED);
     }
 
-//    @DeleteMapping("/{userId}/skills/{skillId}")
-//    public ResponseEntity<?> deleteSkill(@PathVariable long userId, @PathVariable int skillId) {
-//        try {
-//            Employee employee = employeeService.findById(userId);
-//            Skill skill = skillService.getSkill(skillId);
-//            employeeSkillService.removeEmployeeSkills(employee, skill);
-//        } catch (UserNotFoundException e) {
-//            System.out.println("Someone tried to delete skill for an Employee who doesn't exist. the Given Id is : " + userId);
-//        } catch (SkillNotFoundException e) {
-//            System.out.println("Someone tried to delete skill that doesn't exist. the Given Id is : " + skillId);
-//        }
-//
-//        return new ResponseEntity<>(HttpStatus.OK);
-//
-//    }
-//
-//    public EmployeeDTO setEmployeeSkills(EmployeeDTO employeeDTO, Employee employee1) {
-//
-//        Set<SkillDTO> skills = employeeDTO.getSkills();
-//
-//        Set<Skill> skillsToReturn = new HashSet<>();
-//
-//        Employee employee = employeeService.getEmployeeFromDTO(employeeDTO);
-//
-//
-//        if (skills != null) {
-//            skillsToReturn = skillService.addAllSkills(skills);
-//            skillsToReturn = employeeSkillService.addEmployeeSkills(employee1, skillsToReturn);
-//        }
-//
-//        employeeDTO = employeeService.getEmployeeDTOFromEmployee(employee);
-//        employeeDTO.setSkills(skillsToReturn);
-//
-//        return employeeDTO;
-//    }
+    @DeleteMapping("/{employeeId}/skills/{skillId}")
+    public ResponseEntity<?> deleteSkill(@PathVariable long employeeId, @PathVariable int skillId) {
 
+        try {
+            employeeSkillService.removeEmployeeSkills(employeeId, skillId);
+        } catch (SkillNotFoundException | EmployeeNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
 
 }

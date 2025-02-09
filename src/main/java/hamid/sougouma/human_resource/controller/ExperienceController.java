@@ -1,14 +1,9 @@
 package hamid.sougouma.human_resource.controller;
 
-import hamid.sougouma.human_resource.dto.EmployeeDTO;
 import hamid.sougouma.human_resource.dto.ExperienceDTO;
-import hamid.sougouma.human_resource.entity.Employee;
-import hamid.sougouma.human_resource.entity.Experience;
 import hamid.sougouma.human_resource.exception.EmployeeNotFoundException;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
-import hamid.sougouma.human_resource.exception.UserNotFoundException;
 import hamid.sougouma.human_resource.service.ExperienceService;
-import hamid.sougouma.human_resource.service.EmployeeService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,85 +14,63 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/experiences")
+@RequestMapping("/users/{employeeId}/experiences")
 public class ExperienceController {
 
     private final ExperienceService experienceService;
-    private final EmployeeService employeeService;
 
-    public ExperienceController(ExperienceService experienceService, EmployeeService employeeService) {
+    public ExperienceController(ExperienceService experienceService) {
         this.experienceService = experienceService;
-        this.employeeService = employeeService;
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Experience>> getUserExperiences(@PathVariable long userId) throws EmployeeNotFoundException {
+    public ResponseEntity<Collection<ExperienceDTO>> getEmployeeExperiences(@PathVariable long employeeId) {
 
-        EmployeeDTO employee = employeeService.findById(userId);
-        List<Experience> experiences = experienceService.getUserExperiences(employee.getId());
+        List<ExperienceDTO> experiences = experienceService.getUserExperiences(employeeId);
 
         return new ResponseEntity<>(experiences, HttpStatus.OK);
     }
 
     @GetMapping("/{experienceId}")
-    public ResponseEntity<Experience> getUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException {
-        // TODO : don't retrieve the users et theirs roles with the experiences
+    public ResponseEntity<ExperienceDTO> getEmployeeExperience(@PathVariable long employeeId, @PathVariable long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException {
 
-        EmployeeDTO employee = employeeService.findById(userId);
-        Experience experience = experienceService.getExperience(experienceId);
+        ExperienceDTO experience = experienceService.getExperience(employeeId,experienceId);
         return new ResponseEntity<>(experience, HttpStatus.OK);
     }
 
 
     @PostMapping
-    public ResponseEntity<Experience> addUserExperience(@PathVariable long userId, @RequestBody ExperienceDTO experienceDTO, UriComponentsBuilder uriComponentsBuilder)
-            throws UserNotFoundException, EmployeeNotFoundException {
-        EmployeeDTO employee = employeeService.findById(userId);
-        if (experienceDTO != null && employee != null) {
-            Experience experience = experienceService.getExperienceFromDTO(experienceDTO);
-//            experience.setEmployee(employee);
-            Experience createdExperience = experienceService.addExperience(experience);
+    public ResponseEntity<ExperienceDTO> addUserExperience(@PathVariable long employeeId, @RequestBody ExperienceDTO experienceDTO, UriComponentsBuilder uriComponentsBuilder)
+            throws EmployeeNotFoundException {
+        if (experienceDTO != null) {
+            ExperienceDTO dto = experienceService.addExperience(employeeId, experienceDTO);
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(
                     uriComponentsBuilder
-                            .path("/users/{userId}/experiences/{experienceId}")
-                            .buildAndExpand(employee.getId(), createdExperience.getId())
+                            .path("/users/{employeeId}/experiences/{experienceId}")
+                            .buildAndExpand(employeeId, dto.getId())
                             .toUri()
             );
 
-            return new ResponseEntity<>(createdExperience, headers, HttpStatus.CREATED);
+            return new ResponseEntity<>(experienceDTO, headers, HttpStatus.CREATED);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
     @PutMapping("/{experienceId}")
-    public ResponseEntity<Experience> updateUserExperience(@PathVariable long userId, @PathVariable long experienceId, @RequestBody Experience experience) throws ExperienceNotFoundException {
-
-        if (experience != null) {
-            Experience experienceInDB = experienceService.getExperience(experienceId);
-
-            if (experienceInDB != null && experienceInDB.getEmployee().getId() == userId) {
-                Experience updatedExperience = experienceService.updateExperience(experience);
-                return new ResponseEntity<>(updatedExperience, HttpStatus.OK);
-            }
-
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-
+    public ResponseEntity<ExperienceDTO> updateUserExperience(@PathVariable long employeeId, @PathVariable long experienceId, @RequestBody ExperienceDTO experienceDTO) throws ExperienceNotFoundException, EmployeeNotFoundException {
+        if (experienceDTO != null && experienceDTO.getId() == experienceId) {
+            ExperienceDTO updatedExperience = experienceService.updateExperience(employeeId,experienceDTO);
+            return new ResponseEntity<>(updatedExperience, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
     }
 
     @DeleteMapping("/{experienceId}")
-    public ResponseEntity<?> deleteUserExperience(@PathVariable long userId, @PathVariable long experienceId) throws ExperienceNotFoundException {
-        Experience experience = experienceService.getExperience(experienceId);
-
-        if (experience != null && experience.getEmployee().getId() == userId) {
-            experienceService.deleteExperience(experience);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+    public ResponseEntity<?> deleteUserExperience(@PathVariable long employeeId, @PathVariable long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException {
+        experienceService.deleteExperience(employeeId, experienceId);
+        return new ResponseEntity<>(HttpStatus.OK);
 
     }
 

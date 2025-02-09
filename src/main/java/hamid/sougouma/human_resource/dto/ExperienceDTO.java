@@ -30,10 +30,11 @@ public class ExperienceDTO {
     private String description;
 
     @NotNull
-    @DateTimeFormat
-    private LocalDate startDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private String startDate;
 
     @NotNull
-    @DateTimeFormat
-    private LocalDate endDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private String endDate;
+
 }

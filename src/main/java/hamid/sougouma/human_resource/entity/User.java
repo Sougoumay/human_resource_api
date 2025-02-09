@@ -6,6 +6,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 @Entity
 @Data
 @Table(name = "utilisateur")
@@ -24,6 +28,6 @@ public class User {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Employee employee;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
     private Role role;
 }

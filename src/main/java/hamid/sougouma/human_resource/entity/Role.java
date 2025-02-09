@@ -1,10 +1,9 @@
 package hamid.sougouma.human_resource.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -15,6 +14,9 @@ public class Role {
 
     @Column(unique = true)
     private String name;
+
+//    @OneToMany(mappedBy = "role")
+//    public List<User> users;
 
     @Override
     public String toString() {

@@ -5,6 +5,8 @@ import hamid.sougouma.human_resource.dto.SkillDTO;
 import hamid.sougouma.human_resource.entity.Employee;
 import hamid.sougouma.human_resource.entity.Skill;
 import hamid.sougouma.human_resource.exception.SkillAlreadyExistException;
+import hamid.sougouma.human_resource.exception.SkillLevelNotFoundException;
+import hamid.sougouma.human_resource.exception.SkillNotAuthorizedToDeleteException;
 import hamid.sougouma.human_resource.exception.SkillNotFoundException;
 import hamid.sougouma.human_resource.service.EmployeeService;
 import hamid.sougouma.human_resource.service.EmployeeSkillService;
@@ -23,12 +25,10 @@ import java.util.Set;
 public class SkillController {
 
     private final SkillService skillService;
-    private final EmployeeSkillService employeeSkillService;
     private final EmployeeService employeeService;
 
-    public SkillController(SkillService skillService, EmployeeSkillService employeeSkillService, EmployeeService employeeService) {
+    public SkillController(SkillService skillService, EmployeeService employeeService) {
         this.skillService = skillService;
-        this.employeeSkillService = employeeSkillService;
         this.employeeService = employeeService;
     }
 
@@ -49,7 +49,7 @@ public class SkillController {
     }
 
     @PostMapping
-    public ResponseEntity<SkillDTO> createSkill(@RequestBody SkillDTO skill, UriComponentsBuilder ucBuilder) throws SkillAlreadyExistException {
+    public ResponseEntity<SkillDTO> createSkill(@RequestBody SkillDTO skill, UriComponentsBuilder ucBuilder) throws SkillAlreadyExistException, SkillLevelNotFoundException {
         Skill skill1 = skillService.addSkill(skill);
         SkillDTO dto = new SkillDTO(skill1.getId(), skill1.getName(), skill1.getLevel().name());
         HttpHeaders headers = new HttpHeaders();
@@ -64,7 +64,7 @@ public class SkillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SkillDTO> updateSkill(@RequestBody SkillDTO dto, @PathVariable int id) throws SkillAlreadyExistException, SkillNotFoundException {
+    public ResponseEntity<SkillDTO> updateSkill(@RequestBody SkillDTO dto, @PathVariable int id) throws SkillAlreadyExistException, SkillNotFoundException, SkillLevelNotFoundException {
 
         if (dto.getId() == id) {
             skillService.getSkill(id);
@@ -78,12 +78,12 @@ public class SkillController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSkill(@PathVariable int id) {
+    public ResponseEntity<?> deleteSkill(@PathVariable int id) throws SkillNotAuthorizedToDeleteException {
 
         try {
             skillService.deleteSkill(id);
         } catch (SkillNotFoundException e) {
-            System.out.println("Someone tried to delete a skill that doesn't exist. The given Id is " + id);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.OK);

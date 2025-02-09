@@ -2,22 +2,21 @@ package hamid.sougouma.human_resource.service;
 
 import hamid.sougouma.human_resource.dto.ExperienceDTO;
 import hamid.sougouma.human_resource.entity.Experience;
+import hamid.sougouma.human_resource.exception.EmployeeNotFoundException;
 import hamid.sougouma.human_resource.exception.ExperienceNotFoundException;
 
 import java.util.List;
 
 public interface ExperienceService {
 
-    List<Experience> getUserExperiences(Long id);
+    List<ExperienceDTO> getUserExperiences(long id);
 
-    Experience getExperience(Long id) throws ExperienceNotFoundException;
+    ExperienceDTO getExperience(long employeeId, long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException;
 
-    Experience addExperience(Experience experience);
+    ExperienceDTO addExperience(long employeeId ,ExperienceDTO dto) throws EmployeeNotFoundException;
 
-    Experience updateExperience(Experience experience);
+    ExperienceDTO updateExperience(long employeeId, ExperienceDTO experience) throws ExperienceNotFoundException, EmployeeNotFoundException;
 
-    void deleteExperience(Experience experience) throws ExperienceNotFoundException;
-
-    Experience getExperienceFromDTO(ExperienceDTO dto);
+    void deleteExperience(long employeeId, long experienceId) throws ExperienceNotFoundException, EmployeeNotFoundException;
 
 }
